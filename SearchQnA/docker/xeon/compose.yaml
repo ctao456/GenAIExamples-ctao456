@@ -1,8 +1,5 @@
-
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-
-version: "3.8"
 
 services:
   tei-embedding-service:
@@ -19,7 +16,7 @@ services:
       https_proxy: ${https_proxy}
     command: --model-id ${EMBEDDING_MODEL_ID} --auto-truncate
   embedding:
-    image: opea/embedding-tei:latest
+    image: ${REGISTRY:-opea}/embedding-tei:${TAG:-latest}
     container_name: embedding-tei-server
     depends_on:
       - tei-embedding-service
@@ -31,13 +28,10 @@ services:
       http_proxy: ${http_proxy}
       https_proxy: ${https_proxy}
       TEI_EMBEDDING_ENDPOINT: ${TEI_EMBEDDING_ENDPOINT}
-      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
-      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2}
-      LANGCHAIN_PROJECT: "opea-embedding-service"
       HF_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
     restart: unless-stopped
   web-retriever:
-    image: opea/web-retriever-chroma:latest
+    image: ${REGISTRY:-opea}/web-retriever-chroma:${TAG:-latest}
     container_name: web-retriever-chroma-server
     ports:
       - "3003:7077"
@@ -64,7 +58,7 @@ services:
       https_proxy: ${https_proxy}
     command: --model-id ${RERANK_MODEL_ID} --auto-truncate
   reranking:
-    image: opea/reranking-tei:latest
+    image: ${REGISTRY:-opea}/reranking-tei:${TAG:-latest}
     container_name: reranking-tei-xeon-server
     depends_on:
       - tei-reranking-service
@@ -77,9 +71,6 @@ services:
       https_proxy: ${https_proxy}
       TEI_RERANKING_ENDPOINT: ${TEI_RERANKING_ENDPOINT}
       HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
-      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
-      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2}
-      LANGCHAIN_PROJECT: "opea-reranking-service"
     restart: unless-stopped
   tgi-service:
     image: ghcr.io/huggingface/text-generation-inference:1.4
@@ -96,7 +87,7 @@ services:
       HF_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
     command: --model-id ${LLM_MODEL_ID}
   llm:
-    image: opea/llm-tgi:latest
+    image: ${REGISTRY:-opea}/llm-tgi:${TAG:-latest}
     container_name: llm-tgi-server
     depends_on:
       - tgi-service
@@ -109,12 +100,9 @@ services:
       https_proxy: ${https_proxy}
       TGI_LLM_ENDPOINT: ${TGI_LLM_ENDPOINT}
       HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
-      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
-      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2}
-      LANGCHAIN_PROJECT: "opea-llm-service"
     restart: unless-stopped
   searchqna-xeon-backend-server:
-    image: opea/searchqna:latest
+    image: ${REGISTRY:-opea}/searchqna:${TAG:-latest}
     container_name: searchqna-xeon-backend-server
     depends_on:
       - tei-embedding-service
@@ -142,7 +130,7 @@ services:
     ipc: host
     restart: always
   searchqna-gaudi-ui-server:
-    image: opea/searchqna-ui:latest
+    image: ${REGISTRY:-opea}/searchqna-ui:${TAG:-latest}
     container_name: searchqna-xeon-ui-server
     depends_on:
       - searchqna-xeon-backend-server
