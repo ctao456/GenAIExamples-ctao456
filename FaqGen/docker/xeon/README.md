@@ -63,6 +63,12 @@ Then run the command `docker images`, you will have the following Docker Images:
 
 ## 🚀 Start Microservices and MegaService
 
+### Required Models
+
+We set default model as "meta-llama/Meta-Llama-3-8B-Instruct", change "LLM_MODEL_ID" in following Environment Variables setting if you want to use other models.
+
+If use gated models, you also need to provide [huggingface token](https://huggingface.co/docs/hub/security-tokens) to "HUGGINGFACEHUB_API_TOKEN" environment variable.
+
 ### Setup Environment Variables
 
 Since the `compose.yaml` will consume some environment variables, you need to setup them in advance as below.
@@ -71,7 +77,7 @@ Since the `compose.yaml` will consume some environment variables, you need to se
 export no_proxy=${your_no_proxy}
 export http_proxy=${your_http_proxy}
 export https_proxy=${your_http_proxy}
-export LLM_MODEL_ID="Intel/neural-chat-7b-v3-3"
+export LLM_MODEL_ID="meta-llama/Meta-Llama-3-8B-Instruct"
 export TGI_LLM_ENDPOINT="http://${your_ip}:8008"
 export HUGGINGFACEHUB_API_TOKEN=${your_hf_api_token}
 export MEGA_SERVICE_HOST_IP=${host_ip}
@@ -117,25 +123,6 @@ curl http://${host_ip}:8888/v1/faqgen -H "Content-Type: application/json" -d '{
 ```
 
 Following the validation of all aforementioned microservices, we are now prepared to construct a mega-service.
-
-## Enable LangSmith to Monitor an Application (Optional)
-
-LangSmith offers tools to debug, evaluate, and monitor language models and intelligent agents. It can be used to assess benchmark data for each microservice. Before launching your services with `docker compose -f compose.yaml up -d`, you need to enable LangSmith tracing by setting the `LANGCHAIN_TRACING_V2` environment variable to true and configuring your LangChain API key.
-
-Here's how you can do it:
-
-1. Install the latest version of LangSmith:
-
-```bash
-pip install -U langsmith
-```
-
-2. Set the necessary environment variables:
-
-```bash
-export LANGCHAIN_TRACING_V2=true
-export LANGCHAIN_API_KEY=ls_...
-```
 
 ## 🚀 Launch the UI
 

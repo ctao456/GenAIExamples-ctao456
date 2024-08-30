@@ -64,6 +64,11 @@ Then run the command `docker images`, you will have the following Docker Images:
 
 ## 🚀 Start Microservices and MegaService
 
+### Required Models
+
+We set default model as "Intel/neural-chat-7b-v3-3", change "LLM_MODEL_ID" in following setting if you want to use other models.
+If use gated models, you also need to provide [huggingface token](https://huggingface.co/docs/hub/security-tokens) to "HUGGINGFACEHUB_API_TOKEN" environment variable.
+
 ### Setup Environment Variables
 
 Since the `compose.yaml` will consume some environment variables, you need to setup them in advance as below.
@@ -73,7 +78,7 @@ export no_proxy=${your_no_proxy}
 export http_proxy=${your_http_proxy}
 export https_proxy=${your_http_proxy}
 export LLM_MODEL_ID="Intel/neural-chat-7b-v3-3"
-export TGI_LLM_ENDPOINT="http://${your_ip}:8008"
+export TGI_LLM_ENDPOINT="http://${host_ip}:8008"
 export HUGGINGFACEHUB_API_TOKEN=${your_hf_api_token}
 export MEGA_SERVICE_HOST_IP=${host_ip}
 export LLM_SERVICE_HOST_IP=${host_ip}
@@ -117,25 +122,6 @@ curl http://${host_ip}:8888/v1/docsum -H "Content-Type: application/json" -d '{
      }'
 ```
 
-## Enable LangSmith to Monitor an Application (Optional)
-
-LangSmith offers a suite of tools to debug, evaluate, and monitor language models and intelligent agents. It can be used to assess benchmark data for each microservice. Before launching your services with `docker compose up -d`, you need to enable LangSmith tracing by setting the `LANGCHAIN_TRACING_V2` environment variable to true and configuring your LangChain API key.
-
-Here's how you can do it:
-
-1. Install the latest version of LangSmith:
-
-```bash
-pip install -U langsmith
-```
-
-2. Set the necessary environment variables:
-
-```bash
-export LANGCHAIN_TRACING_V2=true
-export LANGCHAIN_API_KEY=ls_...
-```
-
 ## 🚀 Launch the Svelte UI
 
 Open this URL `http://{host_ip}:5173` in your browser to access the frontend.
@@ -146,7 +132,24 @@ Here is an example for summarizing a article.
 
 ![image](https://github.com/intel-ai-tce/GenAIExamples/assets/21761437/67ecb2ec-408d-4e81-b124-6ded6b833f55)
 
-## 🚀 Launch the React UI
+## 🚀 Launch the React UI (Optional)
+
+To access the React-based frontend, modify the UI service in the `compose.yaml` file. Replace `docsum-xeon-ui-server` service with the `docsum-xeon-react-ui-server` service as per the config below:
+
+```yaml
+docsum-gaudi-react-ui-server:
+  image: ${REGISTRY:-opea}/docsum-react-ui:${TAG:-latest}
+  container_name: docsum-gaudi-react-ui-server
+  depends_on:
+    - docsum-gaudi-backend-server
+  ports:
+    - "5174:80"
+  environment:
+    - no_proxy=${no_proxy}
+    - https_proxy=${https_proxy}
+    - http_proxy=${http_proxy}
+    - DOC_BASE_URL=${BACKEND_SERVICE_ENDPOINT}
+```
 
 Open this URL `http://{host_ip}:5175` in your browser to access the frontend.
 

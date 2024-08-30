@@ -1,0 +1,112 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+name: Example jobs
+permissions: read-all
+on:
+  workflow_call:
+    inputs:
+      node:
+        required: true
+        type: string
+      example:
+        required: true
+        type: string
+      tag:
+        default: "latest"
+        required: false
+        type: string
+      build:
+        default: true
+        required: false
+        type: boolean
+      test_compose:
+        default: false
+        required: false
+        type: boolean
+      test_k8s:
+        default: false
+        required: false
+        type: boolean
+      test_gmc:
+        default: false
+        required: false
+        type: boolean
+      opea_branch:
+        default: "main"
+        required: false
+        type: string
+jobs:
+####################################################################################################
+# Image Build
+####################################################################################################
+  build-images:
+    runs-on: "docker-build-${{ inputs.node }}"
+    steps:
+      - name: Clean Up Working Directory
+        run: sudo rm -rf ${{github.workspace}}/*
+
+      - name: Checkout out Repo
+        uses: actions/checkout@v4
+
+      - name: Clone required Repo
+        run: |
+          cd ${{ github.workspace }}/${{ inputs.example }}/docker
+          docker_compose_path=${{ github.workspace }}/${{ inputs.example }}/docker/docker_build_compose.yaml
+          if [[ $(grep -c "tei-gaudi:" ${docker_compose_path}) != 0 ]]; then
+              git clone https://github.com/huggingface/tei-gaudi.git
+          fi
+          if [[ $(grep -c "vllm:" ${docker_compose_path}) != 0 ]]; then
+              git clone https://github.com/vllm-project/vllm.git
+          fi
+          git clone https://github.com/opea-project/GenAIComps.git
+          cd GenAIComps && git checkout ${{ inputs.opea_branch }} && cd ../
+
+      - name: Build Image
+        if: ${{ fromJSON(inputs.build) }}
+        uses: opea-project/validation/actions/image-build@main
+        with:
+          work_dir: ${{ github.workspace }}/${{ inputs.example }}/docker
+          docker_compose_path: ${{ github.workspace }}/${{ inputs.example }}/docker/docker_build_compose.yaml
+          registry: ${OPEA_IMAGE_REPO}opea
+          tag: ${{ inputs.tag }}
+
+####################################################################################################
+# Docker Compose Test
+####################################################################################################
+  test-example-compose:
+    needs: [build-images]
+    if: ${{ fromJSON(inputs.test_compose) }}
+    uses: ./.github/workflows/_run-docker-compose.yml
+    with:
+      tag: ${{ inputs.tag }}
+      example: ${{ inputs.example }}
+      hardware: ${{ inputs.node }}
+    secrets: inherit
+
+
+####################################################################################################
+# K8S Test
+####################################################################################################
+  test-k8s-manifest:
+    needs: [build-images]
+    if: ${{ fromJSON(inputs.test_k8s) }}
+    uses: ./.github/workflows/_manifest-e2e.yml
+    with:
+      example: ${{ inputs.example }}
+      hardware: ${{ inputs.node }}
+      tag: ${{ inputs.tag }}
+      context: "CD"
+    secrets: inherit
+
+####################################################################################################
+# GMC Test
+####################################################################################################
+  test-gmc-pipeline:
+    needs: [build-images]
+    if: ${{ fromJSON(inputs.test_gmc) }}
+    uses: ./.github/workflows/_gmc-e2e.yml
+    with:
+      example: ${{ inputs.example }}
+      hardware: ${{ inputs.node }}
+    secrets: inherit

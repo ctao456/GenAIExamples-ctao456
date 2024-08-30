@@ -30,7 +30,18 @@ Currently we support two ways of deploying ChatQnA services with docker compose:
    docker pull opea/codegen:latest
    ```
 
-2. Start services using the docker images `built from source`: [Guide](./docker)
+2. Start services using the docker images built from source. See the [Gaudi Guide](./docker/gaudi/README.md) or [Xeon Guide](./docker/xeon/README.md) for more information.
+
+### Required Models
+
+By default, the LLM model is set to a default value as listed below:
+
+| Service      | Model                                                                           |
+| ------------ | ------------------------------------------------------------------------------- |
+| LLM_MODEL_ID | [meta-llama/CodeLlama-7b-hf](https://huggingface.co/meta-llama/CodeLlama-7b-hf) |
+
+[meta-llama/CodeLlama-7b-hf](https://huggingface.co/meta-llama/CodeLlama-7b-hf) is a gated model that requires submitting an access request through Hugging Face. You can replace it with another model.
+Change the `LLM_MODEL_ID` below for your needs, such as: [Qwen/CodeQwen1.5-7B-Chat](https://huggingface.co/Qwen/CodeQwen1.5-7B-Chat), [deepseek-ai/deepseek-coder-6.7b-instruct](https://huggingface.co/deepseek-ai/deepseek-coder-6.7b-instruct)
 
 ### Setup Environment Variable
 
@@ -70,7 +81,7 @@ cd GenAIExamples/CodeGen/docker/gaudi
 docker compose up -d
 ```
 
-> Notice: Currently only the **Habana Driver 1.16.xi** is supported for Gaudi.
+> Notice: Currently only the **Habana Driver 1.16.x** is supported for Gaudi.
 
 Refer to the [Gaudi Guide](./docker/gaudi/README.md) to build docker images from source.
 
